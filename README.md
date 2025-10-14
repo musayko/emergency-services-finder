@@ -68,3 +68,63 @@ The project is broken down into six key milestones to ensure a structured develo
 **Milestone 6: Documentation & Finalization**
 *   **Objective:** Prepare the project for final submission.
 *   **Deliverables:** A comprehensive README, a detailed API contracts file, clean code, and a fully prepared repository.
+
+---
+
+### **4. Local Development Setup**
+
+To get the project running on your local machine, you will need Node.js and npm installed. Follow these steps carefully.
+
+#### **Backend Server Setup**
+
+1.  **Navigate to the server directory:**
+    ```bash
+    cd server
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Create the environment file:**
+    Create a new file named `.env` inside the `/server` directory. This file will hold your secret keys. **Do not commit this file to Git.** Add the following content:
+    ```
+    # /server/.env
+    JWT_SECRET=your_super_secret_and_random_jwt_key_here
+    ```
+
+4.  **Run database migrations:**
+    This command will set up the necessary SQLite database tables.
+    ```bash
+    npx knex migrate:latest
+    ```
+
+5.  **Start the backend server:**
+    This will start the server in development mode using `nodemon`, which automatically restarts on file changes.
+    ```bash
+    npm run dev
+    ```
+    The server should now be running on `http://localhost:5001`.
+
+#### **Frontend Client Setup**
+
+1.  **Open a new terminal window.** Do not close the terminal running the backend server.
+
+2.  **Navigate to the client directory:**
+    ```bash
+    cd client
+    ```
+
+3.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+4.  **Start the frontend development server:**
+    ```bash
+    npm run dev
+    ```
+    The React application should now be running and will open automatically in your browser at `http://localhost:5173` (or the next available port).
+
+---
