@@ -19,11 +19,39 @@ const EmergencyReportForm = () => {
 
   const { user } = useContext(AuthContext);
 
+  const handleDescriptionChange = (e) => {
+    // Basic sanitization: remove HTML tags
+    const sanitizedDescription = e.target.value.replace(/<[^>]*>?/gm, '');
+    setDescription(sanitizedDescription);
+  };
+
   const handleImageChange = (e) => {
+    setError(''); // Clear previous image errors
     const file = e.target.files[0];
     if (file) {
+      // Validate file type
+      const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!validImageTypes.includes(file.type)) {
+        setError(t('error_invalid_image_type'));
+        setImage(null);
+        setPreview(null);
+        return;
+      }
+
+      // Validate file size (e.g., max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        setError(t('error_image_size_exceeded'));
+        setImage(null);
+        setPreview(null);
+        return;
+      }
+
       setImage(file);
       setPreview(URL.createObjectURL(file));
+    } else {
+      setImage(null);
+      setPreview(null);
     }
   };
 
@@ -76,7 +104,7 @@ const EmergencyReportForm = () => {
               id="description"
               placeholder={t('issue_description_placeholder')}
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={handleDescriptionChange}
               required
               disabled={loading}
               className="min-h-[120px] bg-card"

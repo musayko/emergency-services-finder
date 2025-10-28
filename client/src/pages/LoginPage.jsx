@@ -65,12 +65,6 @@ const LoginPage = () => {
               <div className="space-y-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">{t('password')}</Label>
-                  <Link
-                    to="/forgot-password"
-                    className="ml-auto inline-block text-sm text-primary hover:underline"
-                  >
-                    {t('forgot_password')}
-                  </Link>
                 </div>
                 <Input
                   id="password"

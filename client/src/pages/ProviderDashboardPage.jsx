@@ -11,7 +11,7 @@ const ProviderNav = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const activeClass = "border-primary text-primary";
-  const inactiveClass = "border-transparent text-muted-foreground hover:text-foreground";
+  const inactiveClass = "border-transparent text-muted-foreground hover:text-foreground hover:no-underline";
 
   return (
     <nav className="flex space-x-4 border-b mb-8">
