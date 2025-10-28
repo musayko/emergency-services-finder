@@ -4,6 +4,7 @@ const db = require('../db/dbConfig.js');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+
 // --- Register a new Provider ---
 exports.registerProvider = async (req, res) => {
   const { business_name, email, password, service_category } = req.body;

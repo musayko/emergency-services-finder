@@ -1,8 +1,7 @@
-// /server/server.js
-
 require('dotenv').config();
 
 const express = require('express');
+const path = require('path'); 
 const app = express();
 const cors = require('cors'); 
 
@@ -16,10 +15,16 @@ app.use(express.json());
 // --- Import Routes ---
 const seekerRoutes = require('./routes/seekerRoutes');
 const providerRoutes = require('./routes/providerRoutes');
+const jobRoutes = require('./routes/jobRoutes');
+
+// --- Serve Static Files ---
+// This makes the 'uploads' folder accessible via URL
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- Use Routes ---
 app.use('/api/seekers', seekerRoutes);
 app.use('/api/providers', providerRoutes);
+app.use('/api/jobs', jobRoutes);
 
 
 // --- Basic Welcome Route ---
