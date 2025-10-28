@@ -1,24 +1,23 @@
-// /client/src/components/EmergencyReportForm.jsx
-
-import React, { useState, useContext } from 'react';
-import { AuthContext } from '@/context/AuthContext'; // Using the alias
-import jobService from '@/services/jobService';     // Using the alias
-
+import { useState, useContext } from 'react';
+import { useTranslation } from 'react-i18next';
+import { AuthContext } from '@/context/AuthContext';
+import jobService from '@/services/jobService';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const EmergencyReportForm = () => {
+  const { t } = useTranslation();
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
-  
-  // State for loading and feedback messages
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
-  const { user } = useContext(AuthContext); // Get user info from our global state
+  const { user } = useContext(AuthContext);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -31,82 +30,90 @@ const EmergencyReportForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!description || !image) {
-      setMessage('Please provide a description and an image.');
+      setError(t('error_description_image_required'));
       return;
     }
 
-    setLoading(true); // Start loading
-    setMessage('');   // Clear previous messages
+    setLoading(true);
+    setMessage('');
+    setError('');
 
     try {
-      // Get the token from our user context
       const token = user?.token;
       if (!token) {
-        throw new Error('Authentication token not found. Please log in again.');
+        throw new Error(t('error_auth_token_not_found'));
       }
 
-      // Call the API service
       const response = await jobService.submitJob(description, image, token);
       
-      setMessage(response.data.message); // Show success message from the API
-      // Optionally reset the form on success
+      setMessage(response.data.message);
       setDescription('');
       setImage(null);
       setPreview(null);
 
-    } catch (error) {
-      // Handle errors from the API
+    } catch (err) {
       const resMessage =
-        (error.response && error.response.data && error.response.data.error) ||
-        error.message ||
-        error.toString();
-      setMessage(resMessage);
+        (err.response && err.response.data && err.response.data.error) ||
+        err.message ||
+        err.toString();
+      setError(resMessage);
     } finally {
-      setLoading(false); // Stop loading, whether success or error
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto p-4 border rounded-lg bg-card text-card-foreground">
-      <div className="grid w-full items-center gap-2">
-        <Label htmlFor="description" className="text-left">Describe the issue:</Label>
-        <Textarea
-          id="description"
-          placeholder="e.g., Water is leaking from the pipe under the kitchen sink."
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-          disabled={loading} // Disable form while loading
-          className="min-h-[100px]"
-        />
-      </div>
-      
-      <div className="grid w-full items-center gap-2">
-        <Label htmlFor="image" className="text-left">Upload a photo:</Label>
-        <Input
-          id="image"
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          required
-          disabled={loading} // Disable form while loading
-        />
-      </div>
-      
-      {preview && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium text-left">Image Preview:</h4>
-          <img src={preview} alt="Emergency preview" className="rounded-md max-w-full h-auto border" />
-        </div>
-      )}
-
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Submitting...' : 'Submit Emergency Report'}
-      </Button>
-
-      {/* Display feedback messages */}
-      {message && <p className="mt-4 text-center">{message}</p>}
-    </form>
+    <Card>
+      <CardHeader>
+        <CardTitle>{t('form_title')}</CardTitle>
+        <CardDescription>{t('form_description')}</CardDescription>
+      </CardHeader>
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-4">
+          <div className="grid w-full items-center gap-2">
+            <Label htmlFor="description">{t('issue_description_label')}</Label>
+            <Textarea
+              id="description"
+              placeholder={t('issue_description_placeholder')}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+              disabled={loading}
+              className="min-h-[120px] bg-card"
+            />
+          </div>
+          
+          <div className="grid w-full items-center gap-2">
+            <Label htmlFor="image">{t('upload_photo_label')}</Label>
+            <Input
+              id="image"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              required
+              disabled={loading}
+              className="bg-card"
+            />
+          </div>
+          
+          {preview && (
+            <div className="space-y-2">
+              <Label>{t('image_preview_label')}</Label>
+              <div className="flex justify-center p-2 border rounded-md bg-muted">
+                <img src={preview} alt={t('image_preview_alt')} className="rounded-md max-h-64 h-auto border" />
+              </div>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex flex-col items-stretch">
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? t('submitting_button') : t('submit_report_button')}
+          </Button>
+          {error && <p className="mt-3 text-sm text-center text-destructive">{error}</p>}
+          {message && <p className="mt-3 text-sm text-center text-primary">{message}</p>}
+        </CardFooter>
+      </form>
+    </Card>
   );
 };
 

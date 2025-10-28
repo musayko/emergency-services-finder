@@ -9,7 +9,9 @@ import SeekerDashboardPage from './pages/SeekerDashboardPage';
 import ProviderLoginPage from './pages/ProviderLoginPage';
 import ProviderRegisterPage from './pages/ProviderRegisterPage';
 import ProviderDashboardPage from './pages/ProviderDashboardPage';
-import { Button } from '@/components/ui/button'; // <-- THE MISSING IMPORT
+import { Button } from '@/components/ui/button'; 
+import ProviderMyJobsPage from './pages/ProviderMyJobsPage';
+import { useTranslation } from 'react-i18next';
 
 // This component will protect routes
 const ProtectedRoute = ({ children }) => {
@@ -33,6 +35,11 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   const { user, logout } = useContext(AuthContext);
+  const { t, i18n } = useTranslation();
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
 
   return (
     <Router>
@@ -40,33 +47,39 @@ function App() {
         <header className="p-4 border-b">
           <nav className="container mx-auto flex justify-between items-center">
             <Link to="/" className="text-xl font-bold">
-              Emergency Finder
+              {t('app_title')}
             </Link>
             
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" onClick={() => changeLanguage('en')}>EN</Button>
+              <Button variant="ghost" size="sm" onClick={() => changeLanguage('ee')}>EE</Button>
+              <Button variant="ghost" size="sm" onClick={() => changeLanguage('ru')}>RU</Button>
+            </div>
+
             {/* --- IMPROVED NAVIGATION --- */}
             <ul className="flex items-center gap-4">
               {!user ? (
                 <>
                   <li>
                     <Link to="/provider/login" className="text-sm font-medium text-muted-foreground hover:text-primary">
-                      Are you a Provider?
+                      {t('are_you_a_provider')}
                     </Link>
                   </li>
                   <li>
                     <Button asChild variant="ghost">
-                      <Link to="/login">Login</Link>
+                      <Link to="/login">{t('login')}</Link>
                     </Button>
                   </li>
                   <li>
                     <Button asChild>
-                      <Link to="/register">Register</Link>
+                      <Link to="/register">{t('register')}</Link>
                     </Button>
                   </li>
                 </>
               ) : (
                 <li>
                   <Button onClick={logout} variant="outline">
-                    Logout
+                    {t('logout')}
                   </Button>
                 </li>
               )}
@@ -91,12 +104,16 @@ function App() {
               path="/provider/dashboard"
               element={<ProtectedRoute><ProviderDashboardPage /></ProtectedRoute>}
             />
+            <Route
+              path="/provider/my-jobs"
+              element={<ProtectedRoute><ProviderMyJobsPage /></ProtectedRoute>}
+            />
             
             {/* Public Homepage Route */}
             <Route path="/" element={
               <div className="text-center">
-                <h1 className="text-4xl font-bold mt-16">Welcome to the 24/7 Emergency Finder</h1>
-                <p className="text-muted-foreground mt-4">Your reliable partner in household emergencies.</p>
+                <h1 className="text-4xl font-bold mt-16">{t('welcome_message')}</h1>
+                <p className="text-muted-foreground mt-4">{t('welcome_subtitle')}</p>
               </div>
             } />
           </Routes>

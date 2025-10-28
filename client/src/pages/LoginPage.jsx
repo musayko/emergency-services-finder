@@ -1,66 +1,101 @@
-import React, { useState, useContext } from 'react'; // Import useContext
-import { useNavigate } from 'react-router-dom'; // To redirect user
-import { AuthContext } from '../context/AuthContext.jsx'; // Import our context
+import { useState, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { AuthContext } from '../context/AuthContext.jsx';
 import authService from '../services/authService';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const LoginPage = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
-  
-  const { login } = useContext(AuthContext); // Get the login function from context
-  const navigate = useNavigate(); // Hook for navigation
+  const [error, setError] = useState('');
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setMessage('');
+    setError('');
     try {
       const response = await authService.login(email, password);
       if (response.data.token) {
-        // Use the context's login function
         login(response.data.token);
-        setMessage('Login Successful! Redirecting...');
-        // Redirect to a protected dashboard after 1 second
-        setTimeout(() => navigate('/dashboard'), 1000);
+        navigate('/dashboard');
       }
-    } catch (error) {
+    } catch (err) {
       const resMessage =
-        (error.response &&
-          error.response.data &&
-          error.response.data.error) ||
-        error.message ||
-        error.toString();
-      setMessage(resMessage);
+        (err.response && err.response.data && err.response.data.error) ||
+        err.message ||
+        err.toString();
+      setError(resMessage);
     }
   };
 
   return (
-    <div>
-      <h2>Seeker Login</h2>
-      <form onSubmit={handleLogin}>
-        <div>
-          <label htmlFor="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+    <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
+      <div className="hidden lg:flex lg:items-center lg:justify-center bg-primary text-primary-foreground p-8">
+        <div className="max-w-md text-center">
+          <h1 className="text-5xl font-extrabold">{t('login_welcome_title')}</h1>
+          <p className="mt-4 text-xl">{t('login_welcome_subtitle')}</p>
         </div>
-        <div>
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Login</button>
-      </form>
-      {message && <p>{message}</p>}
+      </div>
+      <div className="flex items-center justify-center py-12">
+        <Card className="w-full max-w-md mx-4">
+          <CardHeader className="text-center space-y-2">
+            <CardTitle className="text-2xl">{t('login_title')}</CardTitle>
+            <CardDescription>{t('login_subtitle')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">{t('email')}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder={t('email_placeholder')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="bg-card"
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <Label htmlFor="password">{t('password')}</Label>
+                  <Link
+                    to="/forgot-password"
+                    className="ml-auto inline-block text-sm text-primary hover:underline"
+                  >
+                    {t('forgot_password')}
+                  </Link>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="********"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="bg-card"
+                />
+              </div>
+              {error && <p className="text-sm text-center text-destructive">{error}</p>}
+              <Button type="submit" className="w-full">
+                {t('login_button')}
+              </Button>
+            </form>
+            <div className="mt-4 text-center text-sm">
+              {t('no_account')}{' '}
+              <Link to="/register" className="font-semibold text-primary hover:underline">
+                {t('sign_up')}
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

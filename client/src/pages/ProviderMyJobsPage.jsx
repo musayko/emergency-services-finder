@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { AuthContext } from '@/context/AuthContext';
 import jobService from '@/services/jobService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
-import JobDetailsModal from '@/components/JobDetailsModal';
 
 const ProviderNav = () => {
   const location = useLocation();
@@ -31,88 +31,73 @@ const ProviderNav = () => {
   );
 };
 
-const ProviderDashboardPage = () => {
+const ProviderMyJobsPage = () => {
   const { t } = useTranslation();
-  const [jobs, setJobs] = useState([]);
+  const [myJobs, setMyJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedJob, setSelectedJob] = useState(null);
   const { user } = useContext(AuthContext);
-  const [isClaiming, setIsClaiming] = useState(false);
 
   useEffect(() => {
-    const fetchJobs = async () => {
+    const fetchMyJobs = async () => {
       if (user?.token) {
         try {
-          setError('');
-          setLoading(true);
-          const response = await jobService.getOpenJobs(user.token);
-          setJobs(response.data);
+          const response = await jobService.getProviderJobs(user.token);
+          setMyJobs(response.data);
         } catch (err) {
-          const errorMessage = err.response?.data?.error || t('error_fetch_jobs');
-          setError(errorMessage);
+          setError(t('error_fetch_jobs'));
         } finally {
           setLoading(false);
         }
       }
     };
-    fetchJobs();
+    fetchMyJobs();
   }, [user, t]);
 
-  const handleClaimJob = async (jobId) => {
-    if (!user?.token) {
-      setError(t('error_not_authenticated'));
-      return;
-    }
-
-    setIsClaiming(true);
-    setError('');
-
-    try {
-      await jobService.claimJob(jobId, user.token);
-      setJobs(currentJobs => currentJobs.filter(job => job.id !== jobId));
-      setSelectedJob(null); // Close modal on success
-    } catch (err) {
-      const errorMessage = err.response?.data?.error || t('error_claim_job');
-      setError(errorMessage);
-      alert(`${t('error_alert_prefix')}: ${errorMessage}`);
-    } finally {
-      setIsClaiming(false);
+  const getStatusVariant = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'default'; // Green in the default theme
+      case 'in_progress':
+        return 'secondary'; // A lighter, secondary color
+      case 'claimed':
+      default:
+        return 'outline'; // Simple outline
     }
   };
 
   if (loading) {
-    return <div className="container mx-auto p-4">{t('loading_jobs')}</div>;
+    return <div className="container mx-auto p-4">{t('loading_my_jobs')}</div>;
   }
 
   return (
     <div className="container mx-auto p-4">
       <ProviderNav />
-      <h1 className="text-3xl font-bold mb-6">{t('available_jobs_title')}</h1>
+      <h1 className="text-3xl font-bold mb-6">{t('my_claimed_jobs_title')}</h1>
       {error && <p className="text-destructive mb-4">{error}</p>}
-      {jobs.length === 0 ? (
-        <p>{t('no_open_jobs')}</p>
+      {myJobs.length === 0 ? (
+        <p>{t('no_claimed_jobs')}</p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {jobs.map((job) => (
+          {myJobs.map((job) => (
             <Card key={job.id} className="flex flex-col">
               <CardHeader>
-                <CardTitle>{job.ai_identified_problem}</CardTitle>
-                <CardDescription>{t('job_category_label')}: {job.ai_identified_category}</CardDescription>
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-xl font-semibold">{job.ai_identified_problem}</CardTitle>
+                  <Badge variant={getStatusVariant(job.status)} className="capitalize">
+                    {job.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+                <CardDescription className="mt-1">{t('job_category_label')}: {job.ai_identified_category}</CardDescription>
               </CardHeader>
               <CardContent className="flex-grow space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  {t('job_submitted_label')}: {new Date(job.created_at).toLocaleString()}
+                  {t('job_claimed_label')}: {new Date(job.claimed_at).toLocaleString()}
                 </p>
               </CardContent>
               <CardFooter>
-                <JobDetailsModal
-                  job={job}
-                  onClaimJob={handleClaimJob}
-                  isClaiming={isClaiming}
-                >
-                  <Button className="w-full">{t('view_details_button')}</Button>
-                </JobDetailsModal>
+                {/* In a real app, this would open a modal with job management options */}
+                <Button variant="outline" className="w-full">{t('manage_job_button')}</Button>
               </CardFooter>
             </Card>
           ))}
@@ -122,4 +107,4 @@ const ProviderDashboardPage = () => {
   );
 };
 
-export default ProviderDashboardPage;
+export default ProviderMyJobsPage;

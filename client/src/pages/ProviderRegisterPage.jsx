@@ -1,12 +1,137 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import providerService from '../services/providerService';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const ProviderRegisterPage = () => {
+  const { t } = useTranslation();
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [category, setCategory] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (!category) {
+      setError(t('error_category_required'));
+      return;
+    }
+
+    try {
+      const response = await providerService.register({ fullName, email, password, category });
+      setSuccess(t('registration_successful_redirect'));
+      setTimeout(() => {
+        navigate('/provider/login');
+      }, 2000);
+    } catch (err) {
+      const resMessage =
+        (err.response && err.response.data && err.response.data.error) ||
+        err.message ||
+        err.toString();
+      setError(resMessage);
+    }
+  };
+
   return (
-    <div>
-      <h2>Provider Registration</h2>
-      <p>Registration form will be built here.</p>
-      <Link to="/provider/login">Already have an account? Login</Link>
+    <div className="flex items-center justify-center min-h-screen bg-background py-12">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center space-y-2">
+          <CardTitle className="text-2xl">{t('provider_register_title')}</CardTitle>
+          <CardDescription>{t('provider_register_subtitle')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="full-name">{t('full_name')}</Label>
+              <Input
+                id="full-name"
+                type="text"
+                placeholder={t('full_name_placeholder')}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                className="bg-card"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">{t('email')}</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder={t('email_placeholder')}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="bg-card"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">{t('password')}</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="bg-card"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="category">{t('service_category')}</Label>
+              <Select onValueChange={setCategory} value={category}>
+                <SelectTrigger className="bg-card">
+                  <SelectValue placeholder={t('select_category_placeholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Plumbing">{t('category_plumbing')}</SelectItem>
+                  <SelectItem value="Electrical">{t('category_electrical')}</SelectItem>
+                  <SelectItem value="HVAC">{t('category_hvac')}</SelectItem>
+                  <SelectItem value="Structural">{t('category_structural')}</SelectItem>
+                  <SelectItem value="General">{t('category_general')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {error && <p className="text-sm text-center text-destructive">{error}</p>}
+            {success && <p className="text-sm text-center text-primary">{success}</p>}
+            <Button type="submit" className="w-full">
+              {t('create_provider_account')}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="text-center text-sm">
+          <p className="w-full">
+            {t('already_have_account')}{' '}
+            <Link to="/provider/login" className="font-semibold text-primary hover:underline">
+              {t('sign_in')}
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
     </div>
   );
 };

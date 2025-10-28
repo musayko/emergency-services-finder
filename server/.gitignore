@@ -14,7 +14,6 @@ node_modules/
 
 # Database
 /server/db/dev.sqlite3
-*.sqlite3-journal
 
 # Uploads
 /server/uploads/
