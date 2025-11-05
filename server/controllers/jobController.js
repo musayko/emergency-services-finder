@@ -5,11 +5,6 @@ const db = require('../db/dbConfig.js'); // Make sure you've imported your DB co
 const { sendEmail } = require('../services/emailService');
 
 exports.submitJob = async (req, res) => {
-  const aiService = require('../services/aiService');
-const db = require('../db/dbConfig.js');
-const { sendEmail } = require('../services/emailService');
-
-exports.submitJob = async (req, res) => {
   const { description } = req.body;
   const imageFile = req.file;
   const seekerId = req.user.id;
