@@ -39,6 +39,7 @@ io.on('connection', (socket) => {
 
 // --- Global Middleware ---
 const port = process.env.PORT || 5001;
+app.set('trust proxy', 1); // Trust Heroku proxy
 app.use(helmet());
 app.use(cors()); // Use cors for all Express routes
 
@@ -65,7 +66,7 @@ if (process.env.NODE_ENV === 'production') {
 
   // The "catchall" handler: for any request that doesn't
   // match one above, send back React's index.html file.
-  app.get('*', (req, res) => {
+  app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/dist/index.html'));
   });
 }
