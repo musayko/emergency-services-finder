@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Set the base URL for our API. This will be the address of your backend server.
-const API_URL = 'http://localhost:5001/api/seekers/';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/seekers/';
 
 // Register a new seeker
 const register = (fullName, email, password) => {
