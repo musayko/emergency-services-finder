@@ -5,6 +5,11 @@ const db = require('../db/dbConfig.js'); // Make sure you've imported your DB co
 const { sendEmail } = require('../services/emailService');
 
 exports.submitJob = async (req, res) => {
+  const aiService = require('../services/aiService');
+const db = require('../db/dbConfig.js');
+const { sendEmail } = require('../services/emailService');
+
+exports.submitJob = async (req, res) => {
   const { description } = req.body;
   const imageFile = req.file;
   const seekerId = req.user.id;
@@ -14,41 +19,38 @@ exports.submitJob = async (req, res) => {
   }
 
   try {
-    // --- STAGE 1: SAFEGUARD CHECK ---
     const safeguardResult = await aiService.runSafeguardCheck(
-      imageFile.path,
+      imageFile.buffer, // Pass the buffer directly
       imageFile.mimetype,
       description
     );
 
     if (!safeguardResult.isValid) {
-      // (Optional) Here you could add code to delete the invalid uploaded image from the /uploads folder.
       return res.status(400).json({ error: `Submission rejected: ${safeguardResult.reason}` });
     }
 
-    // --- STAGE 2: CLASSIFICATION ---
     const classificationResult = await aiService.runClassification(
-      imageFile.path,
+      imageFile.buffer, // Pass the buffer directly
       imageFile.mimetype,
       description
     );
 
-    // --- STAGE 3: DATABASE INSERTION ---
+    // Create a Data URL for embedding
+    const imageAsDataUrl = `data:${imageFile.mimetype};base64,${imageFile.buffer.toString('base64')}`;
+
     const newJob = {
       user_description: description,
-      image_url: imageFile.path, // Store the path to the image
+      image_url: imageAsDataUrl, // Store the Data URL
       ai_identified_problem: classificationResult.title,
       ai_identified_category: classificationResult.category,
       seeker_id: seekerId,
-      status: 'open', // Default status for a new job
+      status: 'open',
     };
 
     const [createdJob] = await db('jobs').insert(newJob).returning('*');
     
-    // Emit new job event via Socket.IO
     req.app.locals.io.emit('newJob', createdJob);
 
-    // --- FINAL RESPONSE ---
     res.status(201).json({
       message: 'Job submitted and classified successfully!',
       job: createdJob,

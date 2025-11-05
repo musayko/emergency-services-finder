@@ -45,6 +45,7 @@ app.use(helmet({
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
       "connect-src": ["'self'", "http://localhost:5173", process.env.CLIENT_URL],
+      "img-src": ["'self'", "data:", "blob:"],
     },
   },
 }));
