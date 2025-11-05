@@ -5,12 +5,12 @@ import axios from 'axios';
 const API_URL = 'http://localhost:5001/api/providers/';
 
 // Register a new provider
-const register = (businessName, email, password, serviceCategory) => {
+const register = ({ businessName, email, password, category }) => {
   return axios.post(API_URL + 'register', {
     business_name: businessName,
     email,
     password,
-    service_category: serviceCategory,
+    service_category: category,
   });
 };
 

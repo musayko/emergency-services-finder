@@ -1,11 +1,12 @@
 import { useState, useEffect, useContext } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from '@/context/AuthContext';
 import jobService from '@/services/jobService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import JobDetailsModal from '@/components/JobDetailsModal';
+import { io } from 'socket.io-client';
 
 const ProviderNav = () => {
   const location = useLocation();
@@ -33,6 +34,7 @@ const ProviderNav = () => {
 
 const ProviderDashboardPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -57,6 +59,18 @@ const ProviderDashboardPage = () => {
       }
     };
     fetchJobs();
+
+    const socket = io('http://localhost:5001');
+
+    socket.on('newJob', (newJob) => {
+      if (user?.category === newJob.ai_identified_category) {
+        setJobs((prevJobs) => [newJob, ...prevJobs]);
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, [user, t]);
 
   const handleClaimJob = async (jobId) => {
@@ -71,7 +85,8 @@ const ProviderDashboardPage = () => {
     try {
       await jobService.claimJob(jobId, user.token);
       setJobs(currentJobs => currentJobs.filter(job => job.id !== jobId));
-      setSelectedJob(null); // Close modal on success
+      setSelectedJob(null);
+      navigate('/provider/my-jobs');
     } catch (err) {
       const errorMessage = err.response?.data?.error || t('error_claim_job');
       setError(errorMessage);
@@ -86,9 +101,12 @@ const ProviderDashboardPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 no-underline">
       <ProviderNav />
-      <h1 className="text-3xl font-bold mb-6">{t('available_jobs_title')}</h1>
+      <h1 className="text-3xl font-bold mb-6 no-underline">
+        {t('available_jobs_title_for')}{' '}
+        {user?.business_name?.replace(/_/g, ' ')}
+      </h1>
       {error && <p className="text-destructive mb-4">{error}</p>}
       {jobs.length === 0 ? (
         <p>{t('no_open_jobs')}</p>

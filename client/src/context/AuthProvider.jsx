@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { AuthContext } from './AuthContext'; // <-- IMPORT THE CONTEXT FROM ITS NEW FILE
+import { AuthContext } from './AuthContext';
+import { jwtDecode } from 'jwt-decode';
 
-// The rest of the file is the same as before
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  
 
   useEffect(() => {
     try {
       const token = localStorage.getItem('user_token');
       if (token) {
-        // We'll parse the token to make sure it's not malformed
-        setUser({ token: JSON.parse(token) });
+        const decodedUser = jwtDecode(token);
+        setUser({ ...decodedUser, token });
       }
     } catch (error) {
-      // If JSON.parse fails or anything else, we clear the bad token
       console.error("Failed to parse user token from localStorage:", error);
       localStorage.removeItem('user_token');
       setUser(null);
@@ -25,8 +23,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (token) => {
-    localStorage.setItem('user_token', JSON.stringify(token));
-    setUser({ token });
+    const decodedUser = jwtDecode(token);
+    localStorage.setItem('user_token', token);
+    setUser({ ...decodedUser, token });
   };
 
   const logout = () => {

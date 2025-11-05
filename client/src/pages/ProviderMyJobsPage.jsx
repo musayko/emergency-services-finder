@@ -6,6 +6,13 @@ import jobService from '@/services/jobService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ProviderNav = () => {
   const location = useLocation();
@@ -54,15 +61,24 @@ const ProviderMyJobsPage = () => {
     fetchMyJobs();
   }, [user, t]);
 
+  const handleStatusChange = async (jobId, newStatus) => {
+    try {
+      const response = await jobService.updateJobStatus(jobId, newStatus, user.token);
+      setMyJobs(myJobs.map(job => job.id === jobId ? response.data.job : job));
+    } catch (error) {
+      console.error("Failed to update job status", error);
+    }
+  };
+
   const getStatusVariant = (status) => {
     switch (status) {
       case 'completed':
-        return 'default'; // Green in the default theme
+        return 'default';
       case 'in_progress':
-        return 'secondary'; // A lighter, secondary color
+        return 'secondary';
       case 'claimed':
       default:
-        return 'outline'; // Simple outline
+        return 'outline';
     }
   };
 
@@ -71,7 +87,7 @@ const ProviderMyJobsPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 no-underline">
       <ProviderNav />
       <h1 className="text-3xl font-bold mb-6">{t('my_claimed_jobs_title')}</h1>
       {error && <p className="text-destructive mb-4">{error}</p>}
@@ -84,7 +100,7 @@ const ProviderMyJobsPage = () => {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-xl font-semibold">{job.ai_identified_problem}</CardTitle>
-                  <Badge variant={getStatusVariant(job.status)} className="capitalize">
+                  <Badge variant={getStatusVariant(job.status)} className="capitalize no-underline">
                     {job.status.replace('_', ' ')}
                   </Badge>
                 </div>
@@ -96,8 +112,15 @@ const ProviderMyJobsPage = () => {
                 </p>
               </CardContent>
               <CardFooter>
-                {/* In a real app, this would open a modal with job management options */}
-                <Button variant="outline" className="w-full">{t('manage_job_button')}</Button>
+                <Select onValueChange={(value) => handleStatusChange(job.id, value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Update Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
               </CardFooter>
             </Card>
           ))}

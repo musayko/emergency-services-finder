@@ -1,33 +1,14 @@
-# /emergency-finder/.gitignore
-
-# Dependencies
-node_modules/
-/client/node_modules
-/server/node_modules
-
-# Environment Variables
+# Environment variables
 .env
-.env.*
-!.env.example
-/client/.env
-/server/.env
 
-# Database
-/server/db/dev.sqlite3
-*.sqlite3-journal
+# Databases
+*.sqlite3
+
+# Dependency directories
+node_modules/
+
+# Mac specific
+.DS_Store
 
 # Uploads
-/server/uploads/
-
-# Build output
-/client/dist
-/build
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# System files
-.DS_Store
-Thumbs.db
+server/uploads/

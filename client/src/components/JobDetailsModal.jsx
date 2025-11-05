@@ -15,8 +15,6 @@ const JobDetailsModal = ({ job, children, onClaimJob, isClaiming }) => {
 
   if (!job) return null;
 
-  const imageUrl = `http://localhost:5001/${job.image_url}`;
-
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -31,11 +29,13 @@ const JobDetailsModal = ({ job, children, onClaimJob, isClaiming }) => {
         </DialogHeader>
         <div className="space-y-6 py-4">
           <div className="w-full p-2 border rounded-md bg-muted aspect-video flex items-center justify-center overflow-hidden">
-            <img 
-              src={imageUrl} 
-              alt={t('job_image_alt')}
-              className="rounded-md w-full h-auto object-cover"
-            />
+            {job.image_url && (
+              <img 
+                src={`http://localhost:5001/${job.image_url}`}
+                alt={t('job_image_alt')}
+                className="rounded-md w-full h-auto object-cover"
+              />
+            )}
           </div>
           <div className="space-y-2">
             <p className="text-base"><span className="font-semibold text-muted-foreground">{t('job_category_label')}:</span> {job.ai_identified_category}</p>

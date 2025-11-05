@@ -11,7 +11,9 @@ import ProviderRegisterPage from './pages/ProviderRegisterPage';
 import ProviderDashboardPage from './pages/ProviderDashboardPage';
 import { Button } from '@/components/ui/button'; 
 import ProviderMyJobsPage from './pages/ProviderMyJobsPage';
+import SeekerMyJobsPage from './pages/SeekerMyJobsPage'; // Import the new page
 import { useTranslation } from 'react-i18next';
+
 
 // This component will protect routes
 const ProtectedRoute = ({ children }) => {
@@ -46,7 +48,11 @@ function App() {
       <div className="min-h-screen bg-background font-sans text-foreground">
         <header className="p-4 border-b">
           <nav className="container mx-auto flex justify-between items-center">
-            <Link to="/" className="text-xl font-bold">
+            <Link 
+              to={user ? (user.category ? '/provider/dashboard' : '/dashboard') : '/'}
+              className="flex items-center gap-2 text-xl font-bold"
+            >
+              <img src="/logo.png" alt="Emergency Finder Logo" className="h-8 w-8" />
               {t('app_title')}
             </Link>
             
@@ -78,6 +84,12 @@ function App() {
                 </>
               ) : (
                 <li>
+                  {/* Show Seeker-specific link only if they are NOT a provider */}
+                  {!user.category && (
+                    <Link to="/my-jobs" className="text-sm font-medium text-muted-foreground hover:text-primary pr-4">
+                      {t('my_emergencies')}
+                    </Link>
+                  )}
                   <Button onClick={logout} variant="outline">
                     {t('logout')}
                   </Button>
@@ -95,6 +107,10 @@ function App() {
             <Route
               path="/dashboard"
               element={<ProtectedRoute><SeekerDashboardPage /></ProtectedRoute>}
+            />
+            <Route
+              path="/my-jobs"
+              element={<ProtectedRoute><SeekerMyJobsPage /></ProtectedRoute>}
             />
 
             {/* Provider Routes */}
@@ -114,6 +130,7 @@ function App() {
               <div className="text-center">
                 <h1 className="text-4xl font-bold mt-16">{t('welcome_message')}</h1>
                 <p className="text-muted-foreground mt-4">{t('welcome_subtitle')}</p>
+
               </div>
             } />
           </Routes>

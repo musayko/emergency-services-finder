@@ -6,7 +6,7 @@ const API_URL = 'http://localhost:5001/api/seekers/';
 // Register a new seeker
 const register = (fullName, email, password) => {
   return axios.post(API_URL + 'register', {
-    full_name: fullName,
+    fullName,
     email,
     password,
   });

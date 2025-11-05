@@ -2,6 +2,7 @@
 
 const aiService = require('../services/aiService');
 const db = require('../db/dbConfig.js'); // Make sure you've imported your DB connection
+const { sendEmail } = require('../services/emailService');
 
 exports.submitJob = async (req, res) => {
   const { description } = req.body;
@@ -24,7 +25,6 @@ exports.submitJob = async (req, res) => {
       // (Optional) Here you could add code to delete the invalid uploaded image from the /uploads folder.
       return res.status(400).json({ error: `Submission rejected: ${safeguardResult.reason}` });
     }
-    console.log('--- Job Submission Passed Safeguard ---');
 
     // --- STAGE 2: CLASSIFICATION ---
     const classificationResult = await aiService.runClassification(
@@ -32,8 +32,6 @@ exports.submitJob = async (req, res) => {
       imageFile.mimetype,
       description
     );
-    console.log('--- AI Classification Complete ---');
-    console.log(classificationResult);
 
     // --- STAGE 3: DATABASE INSERTION ---
     const newJob = {
@@ -46,9 +44,10 @@ exports.submitJob = async (req, res) => {
     };
 
     const [createdJob] = await db('jobs').insert(newJob).returning('*');
-    console.log('--- Job Saved to Database ---');
-    console.log(createdJob);
     
+    // Emit new job event via Socket.IO
+    req.app.locals.io.emit('newJob', createdJob);
+
     // --- FINAL RESPONSE ---
     res.status(201).json({
       message: 'Job submitted and classified successfully!',
@@ -134,6 +133,21 @@ exports.claimJob = async (req, res) => {
       job: updatedJob,
     });
 
+    // Send email notification to seeker
+    try {
+      const seeker = await db('seekers').where({ id: updatedJob.seeker_id }).first();
+      if (seeker && seeker.email) {
+        await sendEmail(
+          seeker.email,
+          'Your Emergency Job Has Been Claimed!',
+          `Good news! Your emergency job "${updatedJob.ai_identified_problem}" has been claimed by a provider. They will be in touch shortly.`, 
+          `<p>Good news! Your emergency job "<strong>${updatedJob.ai_identified_problem}</strong>" has been claimed by a provider. They will be in touch shortly.</p>`
+        );
+      }
+    } catch (emailError) {
+      console.error('Error sending email after job claim:', emailError);
+    }
+
   } catch (error) {
     console.error("Error claiming job:", error);
     res.status(500).json({ error: 'An internal error occurred while claiming the job.' });
@@ -161,7 +175,73 @@ exports.getProviderJobs = async (req, res) => {
     res.status(200).json(myJobs);
 
   } catch (error) {
-    console.error("Error fetching provider's jobs:", error);
     res.status(500).json({ error: 'An internal error occurred.' });
+  }
+};
+
+exports.getSeekerJobs = async (req, res) => {
+  const seekerId = req.user.id;
+
+  try {
+    const jobs = await db('jobs')
+      .where({ seeker_id: seekerId })
+      .orderBy('created_at', 'desc');
+    res.status(200).json(jobs);
+  } catch (error) {
+    console.error('Error fetching seeker jobs:', error);
+    res.status(500).json({ error: 'An internal error occurred.' });
+  }
+};
+
+exports.updateJobStatus = async (req, res) => {
+  const providerId = req.user.id;
+  const { id: jobId } = req.params;
+  const { status } = req.body;
+
+  if (!req.user.category) {
+    return res.status(403).json({ error: 'Access denied. Only providers can update jobs.' });
+  }
+
+  if (!status) {
+    return res.status(400).json({ error: 'Status is required.' });
+  }
+
+  try {
+    const job = await db('jobs').where({ id: jobId, provider_id: providerId }).first();
+
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found or you are not assigned to it.' });
+    }
+
+    const [updatedJob] = await db('jobs')
+      .where({ id: jobId })
+      .update({
+        status: status,
+        updated_at: db.fn.now(),
+      })
+      .returning('*');
+
+    res.status(200).json({
+      message: 'Job status updated successfully!',
+      job: updatedJob,
+    });
+
+    // Send email notification to seeker
+    try {
+      const seeker = await db('seekers').where({ id: updatedJob.seeker_id }).first();
+      if (seeker && seeker.email) {
+        await sendEmail(
+          seeker.email,
+          `Your Emergency Job Status Updated to ${updatedJob.status.replace('_', ' ').toUpperCase()}`,
+          `Your emergency job "${updatedJob.ai_identified_problem}" has been updated to status: ${updatedJob.status.replace('_', ' ')}.`,
+          `<p>Your emergency job "<strong>${updatedJob.ai_identified_problem}</strong>" has been updated to status: <strong>${updatedJob.status.replace('_', ' ')}</strong>.</p>`
+        );
+      }
+    } catch (emailError) {
+      console.error('Error sending email after job status update:', emailError);
+    }
+  } catch (error) {
+    console.error('Error updating job status:', error);
+    res.status(500).json({ error: 'An internal error occurred while updating the job status.' });
   }
 };

@@ -23,7 +23,7 @@ import {
 
 const ProviderRegisterPage = () => {
   const { t } = useTranslation();
-  const [fullName, setFullName] = useState('');
+  const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [category, setCategory] = useState('');
@@ -42,7 +42,7 @@ const ProviderRegisterPage = () => {
     }
 
     try {
-      const response = await providerService.register({ fullName, email, password, category });
+      const response = await providerService.register({ businessName, email, password, category });
       setSuccess(t('registration_successful_redirect'));
       setTimeout(() => {
         navigate('/provider/login');
@@ -66,13 +66,13 @@ const ProviderRegisterPage = () => {
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="full-name">{t('full_name')}</Label>
+              <Label htmlFor="business-name">{t('business_name')}</Label>
               <Input
-                id="full-name"
+                id="business-name"
                 type="text"
-                placeholder={t('full_name_placeholder')}
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                placeholder={t('business_name_placeholder')}
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
                 required
                 className="bg-card"
               />

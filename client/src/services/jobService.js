@@ -47,11 +47,31 @@ const getProviderJobs = (token) => {
   });
 };
 
+const getSeekerJobs = (token) => {
+  return axios.get(API_URL + 'my-jobs/seeker', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
+const updateJobStatus = (jobId, status, token) => {
+  return axios.put(
+    `${API_URL}${jobId}/status`,
+    { status },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+};
+
 const jobService = {
   submitJob,
   getOpenJobs,
   claimJob,
   getProviderJobs,
+  getSeekerJobs,
+  updateJobStatus,
 };
 
 export default jobService;

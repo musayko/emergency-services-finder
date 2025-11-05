@@ -7,10 +7,10 @@ const jwt = require('jsonwebtoken');
 // Function to handle seeker registration
 exports.registerSeeker = async (req, res) => {
   // 1. Destructure the required fields from the request body
-  const { full_name, email, password } = req.body;
+  const { fullName, email, password } = req.body;
 
   // 2. Basic validation: Check if all fields are present
-  if (!full_name || !email || !password) {
+  if (!fullName || !email || !password) {
     return res.status(400).json({ error: 'All fields are required.' });
   }
 
@@ -22,7 +22,7 @@ exports.registerSeeker = async (req, res) => {
     // 4. Insert the new seeker into the database using Knex
     const [newSeeker] = await db('seekers')
       .insert({
-        full_name,
+        full_name: fullName,
         email,
         password_hash: hashedPassword,
       })
