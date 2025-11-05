@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/providers/';
+const API_URL = '/api/providers/';
 
 // Register a new provider
 const register = ({ businessName, email, password, category }) => {

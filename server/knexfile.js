@@ -1,31 +1,31 @@
-// server/db/knexfile.js
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 module.exports = {
   development: {
     client: 'sqlite3',
     connection: {
-      filename: './db/dev.sqlite3'
+      filename: path.join(__dirname, 'db/dev.sqlite3'),
     },
     useNullAsDefault: true,
     migrations: {
-      directory: './db/migrations'
+      directory: path.join(__dirname, 'db/migrations'),
     },
     seeds: {
-      directory: './db/seeds',
-    }
+      directory: path.join(__dirname, 'db/seeds'),
+    },
   },
   production: {
     client: 'pg',
     connection: {
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
+      ssl: { rejectUnauthorized: false },
     },
     migrations: {
-      directory: './db/migrations'
+      directory: path.join(__dirname, 'db/migrations'),
     },
     seeds: {
-      directory: './db/seeds'
-    }
-  }
+      directory: path.join(__dirname, 'db/seeds'),
+    },
+  },
 };
