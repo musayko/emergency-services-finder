@@ -1,0 +1,16 @@
+{
+  "name": "emergency-finder-monorepo",
+  "version": "1.0.0",
+  "description": "Monorepo for the Emergency Finder application",
+  "scripts": {
+    "start": "npm start --prefix server",
+    "heroku-postbuild": "npm install --prefix server && npm install --prefix client && npm run build --prefix client"
+  },
+  "cacheDirectories": [
+    "server/node_modules",
+    "client/node_modules"
+  ],
+  "engines": {
+    "node": "18.x"
+  }
+}
