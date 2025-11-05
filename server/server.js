@@ -21,7 +21,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:5173', // Your client's address
+    origin: process.env.CLIENT_URL || 'http://localhost:5173', // Your client's address
     methods: ['GET', 'POST'],
   },
 });
@@ -41,7 +41,19 @@ io.on('connection', (socket) => {
 const port = process.env.PORT || 5001;
 app.set('trust proxy', 1); // Trust Heroku proxy
 app.use(helmet());
-app.use(cors()); // Use cors for all Express routes
+const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:5173'];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+};
+
+app.use(cors(corsOptions)); // Use cors for all Express routes
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
