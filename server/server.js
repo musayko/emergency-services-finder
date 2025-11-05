@@ -40,7 +40,14 @@ io.on('connection', (socket) => {
 // --- Global Middleware ---
 const port = process.env.PORT || 5001;
 app.set('trust proxy', 1); // Trust Heroku proxy
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "connect-src": ["'self'", "http://localhost:5173", process.env.CLIENT_URL],
+    },
+  },
+}));
 const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:5173'];
 
 const corsOptions = {
