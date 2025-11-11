@@ -60,7 +60,7 @@ const ProviderDashboardPage = () => {
     };
     fetchJobs();
 
-    const socket = io('http://localhost:5001');
+    const socket = io();
 
     socket.on('newJob', (newJob) => {
       if (user?.category === newJob.ai_identified_category) {

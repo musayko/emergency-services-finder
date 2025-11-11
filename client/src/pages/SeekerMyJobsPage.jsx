@@ -52,7 +52,7 @@ const SeekerMyJobsPage = () => {
               <p><strong>Description:</strong> {job.user_description}</p>
               {job.image_url && (
                 <img 
-                  src={`http://localhost:5001/${job.image_url}`}
+                  src={job.image_url}
                   alt="Job"
                   className="mt-2 w-full h-auto rounded-lg"
                 />

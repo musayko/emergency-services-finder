@@ -31,7 +31,7 @@ const JobDetailsModal = ({ job, children, onClaimJob, isClaiming }) => {
           <div className="w-full p-2 border rounded-md bg-muted aspect-video flex items-center justify-center overflow-hidden">
             {job.image_url && (
               <img 
-                src={`http://localhost:5001/${job.image_url}`}
+                src={job.image_url}
                 alt={t('job_image_alt')}
                 className="rounded-md w-full h-auto object-cover"
               />
